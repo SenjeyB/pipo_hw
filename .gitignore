@@ -38,3 +38,5 @@ application-local.properties
 /build/
 /dist/
 /tmp/
+
+node_modules/
