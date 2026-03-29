@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS intervals;
+DROP TABLE IF EXISTS users;
