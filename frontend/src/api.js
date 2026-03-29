@@ -13,15 +13,14 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Auth
 export const register = (data) => api.post('/auth/register', data)
 export const login = (data) => api.post('/auth/login', data)
 export const getMe = () => api.get('/auth/me')
 
-// Intervals
 export const createInterval = (data) => api.post('/intervals', data)
 export const getMyIntervals = () => api.get('/intervals/my')
 export const getAvailableIntervals = () => api.get('/intervals/available')
+export const getBookedIntervals = () => api.get('/intervals/booked')
 export const getInterval = (id) => api.get(`/intervals/${id}`)
 export const updateInterval = (id, data) => api.put(`/intervals/${id}`, data)
 export const deleteInterval = (id) => api.delete(`/intervals/${id}`)

@@ -2,7 +2,6 @@ import React, { useState, createContext, useContext, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom'
 import * as api from './api'
 
-// --- Auth Context ---
 const AuthContext = createContext(null)
 
 function AuthProvider({ children }) {
@@ -51,7 +50,6 @@ function useAuth() {
   return useContext(AuthContext)
 }
 
-// --- Login Page ---
 function LoginPage() {
   const { loginUser } = useAuth()
   const navigate = useNavigate()
@@ -93,7 +91,6 @@ function LoginPage() {
   )
 }
 
-// --- Register Page ---
 function RegisterPage() {
   const { registerUser } = useAuth()
   const navigate = useNavigate()
@@ -140,7 +137,6 @@ function RegisterPage() {
   )
 }
 
-// --- My Intervals Page ---
 function MyIntervalsPage() {
   const [intervals, setIntervals] = useState([])
   const [title, setTitle] = useState('')
@@ -160,8 +156,8 @@ function MyIntervalsPage() {
     try {
       await api.createInterval({
         title,
-        start_time: new Date(startTime).toISOString(),
-        end_time: new Date(endTime).toISOString(),
+        startTime: new Date(startTime).toISOString(),
+        endTime: new Date(endTime).toISOString(),
       })
       setTitle(''); setStartTime(''); setEndTime('')
       load()
@@ -201,13 +197,13 @@ function MyIntervalsPage() {
       {intervals.map(iv => (
         <div className="card" key={iv.id}>
           <strong>{iv.title}</strong>
-          <span className={`tag ${iv.is_booked ? 'tag-booked' : 'tag-available'}`} style={{marginLeft:10}}>
-            {iv.is_booked ? 'Booked' : 'Available'}
+          <span className={`tag ${iv.isBooked ? 'tag-booked' : 'tag-available'}`} style={{marginLeft:10}}>
+            {iv.isBooked ? 'Booked' : 'Available'}
           </span>
           <p style={{marginTop:8, fontSize:14, color:'#666'}}>
-            {new Date(iv.start_time).toLocaleString()} — {new Date(iv.end_time).toLocaleString()}
+            {new Date(iv.startTime).toLocaleString()} — {new Date(iv.endTime).toLocaleString()}
           </p>
-          {iv.booked_by && <p style={{fontSize:13, color:'#888'}}>Booked by: {iv.booked_by}</p>}
+          {iv.bookedBy && <p style={{fontSize:13, color:'#888'}}>Booked by: {iv.bookedBy}</p>}
           <button className="btn btn-danger" style={{marginTop:8}} onClick={() => handleDelete(iv.id)}>
             Delete
           </button>
@@ -218,7 +214,6 @@ function MyIntervalsPage() {
   )
 }
 
-// --- Available Intervals Page ---
 function AvailablePage() {
   const { user } = useAuth()
   const [intervals, setIntervals] = useState([])
@@ -242,10 +237,10 @@ function AvailablePage() {
           <strong>{iv.title}</strong>
           <span className="tag tag-available" style={{marginLeft:10}}>Available</span>
           <p style={{marginTop:8, fontSize:14, color:'#666'}}>
-            {new Date(iv.start_time).toLocaleString()} — {new Date(iv.end_time).toLocaleString()}
+            {new Date(iv.startTime).toLocaleString()} — {new Date(iv.endTime).toLocaleString()}
           </p>
-          <p style={{fontSize:13, color:'#888'}}>Owner: {iv.owner_id}</p>
-          {iv.owner_id !== user?.id && (
+          <p style={{fontSize:13, color:'#888'}}>Owner: {iv.ownerName}</p>
+          {iv.ownerId !== user?.id && (
             <button className="btn btn-success" style={{marginTop:8}} onClick={() => handleBook(iv.id)}>
               Book This Slot
             </button>
@@ -257,15 +252,50 @@ function AvailablePage() {
   )
 }
 
-// --- Navigation ---
+function BookedPage() {
+  const [intervals, setIntervals] = useState([])
+
+  const load = () => {
+    api.getBookedIntervals().then(r => setIntervals(r.data || []))
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleCancel = async (id) => {
+    await api.cancelBooking(id)
+    load()
+  }
+
+  return (
+    <div className="container">
+      <h2>My Booked Slots</h2>
+      {intervals.map(iv => (
+        <div className="card" key={iv.id}>
+          <strong>{iv.title}</strong>
+          <span className="tag tag-booked" style={{marginLeft:10}}>Booked</span>
+          <p style={{marginTop:8, fontSize:14, color:'#666'}}>
+            {new Date(iv.startTime).toLocaleString()} — {new Date(iv.endTime).toLocaleString()}
+          </p>
+          <p style={{fontSize:13, color:'#888'}}>Owner: {iv.ownerName}</p>
+          <button className="btn btn-danger" style={{marginTop:8}} onClick={() => handleCancel(iv.id)}>
+            Cancel Booking
+          </button>
+        </div>
+      ))}
+      {intervals.length === 0 && <p>You have no booked slots.</p>}
+    </div>
+  )
+}
+
 function Navbar() {
   const { user, logout } = useAuth()
   return (
     <nav>
       <div>
-        <Link to="/">🕐 Pipo-Go</Link>
+        <Link to="/">🕐 Scheduler</Link>
         {user && <Link to="/my">My Slots</Link>}
         {user && <Link to="/available">Browse Slots</Link>}
+        {user && <Link to="/booked">My Bookings</Link>}
       </div>
       <div>
         {user ? (
@@ -287,7 +317,6 @@ function PrivateRoute({ children }) {
   return children
 }
 
-// --- App ---
 export default function App() {
   return (
     <BrowserRouter>
@@ -298,6 +327,7 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/my" element={<PrivateRoute><MyIntervalsPage /></PrivateRoute>} />
           <Route path="/available" element={<PrivateRoute><AvailablePage /></PrivateRoute>} />
+          <Route path="/booked" element={<PrivateRoute><BookedPage /></PrivateRoute>} />
           <Route path="/" element={<PrivateRoute><MyIntervalsPage /></PrivateRoute>} />
         </Routes>
       </AuthProvider>

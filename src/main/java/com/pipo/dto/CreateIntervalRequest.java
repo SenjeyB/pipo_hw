@@ -1,5 +1,6 @@
 package com.pipo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,10 +20,12 @@ public class CreateIntervalRequest {
     private String title;
 
     @NotNull
+    @JsonProperty("startTime")
     @Schema(description = "Start time", example = "2025-06-01T10:00:00")
     private LocalDateTime startTime;
 
     @NotNull
+    @JsonProperty("endTime")
     @Schema(description = "End time", example = "2025-06-01T11:00:00")
     private LocalDateTime endTime;
 }
